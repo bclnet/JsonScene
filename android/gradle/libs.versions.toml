@@ -1,0 +1,39 @@
+[versions]
+agp = "8.11.1"
+kotlin = "2.2.0"
+serialization = "1.8.0"
+coroutines = "1.10.1"
+composeBom = "2025.02.00"
+activityCompose = "1.10.0"
+sceneview = "2.3.0"
+metaSpatial = "0.14.0"
+junit = "4.13.2"
+androidxJunit = "1.2.1"
+androidxRunner = "1.6.2"
+
+[libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+sceneview = { module = "io.github.sceneview:sceneview", version.ref = "sceneview" }
+meta-spatial-sdk = { module = "com.meta.spatial:meta-spatial-sdk", version.ref = "metaSpatial" }
+meta-spatial-toolkit = { module = "com.meta.spatial:meta-spatial-sdk-toolkit", version.ref = "metaSpatial" }
+jsonui-core = { module = "com.bclnet.jsonui:jsonui-core" }
+jsonui-compose = { module = "com.bclnet.jsonui:jsonui-compose" }
+junit = { module = "junit:junit", version.ref = "junit" }
+androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxRunner" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

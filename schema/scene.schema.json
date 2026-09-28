@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bclnet/JsonScene/schema/scene.schema.json",
+  "title": "JsonScene Scene node",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "_ui": { "type": "object", "description": "JsonUI header: version, state, script, strings" },
+    "type": { "const": "Scene" },
+    "anchor": { "enum": ["code", "floor", "free"], "default": "code" },
+    "scale": { "type": "number", "default": 1 },
+    "bounds": { "$ref": "#/$defs/bounds" },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "lighting": { "enum": ["auto", "none", "studio"], "default": "auto" },
+        "shadows": { "type": "boolean", "default": true },
+        "ground": { "type": "boolean", "default": true }
+      }
+    },
+    "actors": { "type": "array", "items": { "$ref": "#/$defs/actor" } },
+    "on": { "$ref": "#/$defs/handlers" }
+  },
+  "$defs": {
+    "vec3": {
+      "oneOf": [
+        { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+        { "type": "object", "properties": { "x": { "type": "number" }, "y": { "type": "number" }, "z": { "type": "number" } } }
+      ]
+    },
+    "bounds": {
+      "oneOf": [
+        { "type": "number" },
+        { "type": "object", "properties": { "radius": { "type": "number" } }, "required": ["radius"] },
+        { "type": "object", "properties": { "min": { "$ref": "#/$defs/vec3" }, "max": { "$ref": "#/$defs/vec3" } }, "required": ["min", "max"] }
+      ]
+    },
+    "target": { "type": "string", "description": "\"user\" or an actor id" },
+    "command": {
+      "type": "object",
+      "description": "An actor command: exactly one of the verb keys, plus its options",
+      "properties": {
+        "play": { "oneOf": [ { "type": "string" }, { "type": "object", "properties": { "animation": { "type": "string" }, "loop": { "type": "boolean" }, "speed": { "type": "number" } }, "required": ["animation"] } ] },
+        "loop": { "type": "boolean" },
+        "speed": { "type": "number" },
+        "sound": { "oneOf": [ { "type": "string" }, { "type": "object", "properties": { "name": { "type": "string" }, "loop": { "type": "boolean" } }, "required": ["name"] } ] },
+        "stopSound": { "oneOf": [ { "type": "string" }, { "type": "boolean" } ] },
+        "say": { "type": "string" },
+        "moveTo": { "oneOf": [ { "$ref": "#/$defs/target" }, { "$ref": "#/$defs/vec3" }, { "type": "object", "properties": { "target": { "$ref": "#/$defs/target" }, "point": { "$ref": "#/$defs/vec3" }, "stopAt": { "type": "number" } } } ] },
+        "stopAt": { "type": "number" },
+        "lookAt": { "$ref": "#/$defs/target" },
+        "stop": { "type": "boolean" },
+        "wait": { "type": "number" },
+        "emit": { "type": "string" }
+      }
+    },
+    "step": { "description": "A command or a JsonUI action (host action name, \"js: …\", { \"set\": {} }, { \"name\", \"args\" })", "anyOf": [ { "$ref": "#/$defs/command" }, { "type": "string" }, { "type": "object" } ] },
+    "script": { "oneOf": [ { "$ref": "#/$defs/step" }, { "type": "array", "items": { "$ref": "#/$defs/step" } } ] },
+    "handlers": { "type": "object", "additionalProperties": { "$ref": "#/$defs/script" } },
+    "clip": {
+      "oneOf": [
+        { "type": "string" }, { "type": "integer" },
+        { "type": "object", "properties": { "clip": { "oneOf": [ { "type": "string" }, { "type": "integer" } ] }, "loop": { "type": "boolean" }, "speed": { "type": "number" } }, "required": ["clip"] }
+      ]
+    },
+    "sound": {
+      "oneOf": [
+        { "type": "string", "format": "uri-reference" },
+        { "type": "object", "properties": { "url": { "type": "string" }, "loop": { "type": "boolean" }, "volume": { "type": "number", "minimum": 0, "maximum": 1 }, "spatial": { "type": "boolean" } }, "required": ["url"] }
+      ]
+    },
+    "body": {
+      "type": "object",
+      "required": ["model"],
+      "properties": {
+        "model": { "oneOf": [ { "type": "string" }, { "type": "object", "additionalProperties": { "type": "string" }, "description": "format → URL, e.g. { \"glb\": …, \"usdz\": … }" } ] },
+        "scale": { "type": "number", "default": 1 },
+        "animations": { "type": "object", "additionalProperties": { "$ref": "#/$defs/clip" } },
+        "default": { "type": "string" },
+        "sounds": { "type": "object", "additionalProperties": { "$ref": "#/$defs/sound" } },
+        "sockets": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "mobility": {
+      "oneOf": [
+        { "enum": ["none", "ground", "air"] },
+        { "type": "object", "properties": {
+          "mode": { "enum": ["none", "ground", "air"], "default": "ground" },
+          "speed": { "type": "number", "default": 0.5 },
+          "turnRate": { "type": "number", "default": 180 },
+          "altitude": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "bounds": { "$ref": "#/$defs/bounds" },
+          "idle": { "type": "string", "default": "idle" },
+          "move": { "type": "string" }
+        } }
+      ]
+    },
+    "behavior": {
+      "oneOf": [
+        { "enum": ["idle", "wander"] },
+        { "type": "object", "required": ["type"], "properties": {
+          "type": { "enum": ["idle", "wander", "approach", "flee", "follow", "patrol", "lookAt", "perchOn", "flyTo"] },
+          "priority": { "type": "integer", "default": 0 },
+          "when": { "description": "dynamic value; the behavior is active when truthy" },
+          "radius": { "type": "number" },
+          "pause": { "oneOf": [ { "type": "number" }, { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 } ] },
+          "target": { "$ref": "#/$defs/target" },
+          "from": { "$ref": "#/$defs/target" },
+          "stopAt": { "type": "number" },
+          "distance": { "type": "number" },
+          "points": { "type": "array", "items": { "$ref": "#/$defs/vec3" } },
+          "loop": { "type": "boolean" },
+          "socket": { "type": "string" },
+          "point": { "$ref": "#/$defs/vec3" }
+        } }
+      ]
+    },
+    "mind": {
+      "type": "object",
+      "properties": {
+        "persona": { "type": "string" },
+        "senses": { "type": "array", "items": { "enum": ["userDistance", "userLooking", "timeOfDay", "state", "actors", "lastEvent"] } },
+        "tools": { "type": "array", "items": { "enum": ["say", "play", "sound", "moveTo", "lookAt", "set", "stop", "wait"] } },
+        "budget": { "type": "object", "properties": { "tokens": { "type": "integer" }, "perTurn": { "type": "integer", "default": 400 }, "cooldown": { "type": "number", "default": 5 } } },
+        "triggers": { "type": "array", "items": { "type": "string" } },
+        "interval": { "type": "number", "default": 30 },
+        "canned": { "type": "array", "items": { "type": "object", "required": ["match", "do"], "properties": { "match": { "type": "string" }, "do": { "$ref": "#/$defs/script" } } } }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "transform": { "type": "object", "properties": { "position": { "$ref": "#/$defs/vec3" }, "rotation": { "oneOf": [ { "type": "number" }, { "$ref": "#/$defs/vec3" } ] }, "scale": { "type": "number" } } },
+        "body": { "$ref": "#/$defs/body" },
+        "mobility": { "$ref": "#/$defs/mobility" },
+        "behaviors": { "type": "array", "items": { "$ref": "#/$defs/behavior" } },
+        "mind": { "$ref": "#/$defs/mind" },
+        "on": { "$ref": "#/$defs/handlers" },
+        "nearDistance": { "type": "number", "default": 1 }
+      }
+    }
+  }
+}

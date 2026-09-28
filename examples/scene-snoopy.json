@@ -1,0 +1,70 @@
+{
+  "_ui": {
+    "version": 1,
+    "state": { "called": false, "scared": false }
+  },
+  "type": "Scene",
+  "anchor": "floor",
+  "bounds": { "radius": 2.5 },
+  "actors": [
+    {
+      "id": "snoopy",
+      "name": "Snoopy",
+      "transform": { "position": [0.8, 0, 0.4], "rotation": [0, 180, 0] },
+      "body": {
+        "model": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb",
+        "scale": 0.005,
+        "animations": {
+          "idle": { "clip": "Survey", "loop": true },
+          "walk": { "clip": "Walk", "loop": true },
+          "run": { "clip": "Run", "loop": true },
+          "happy": { "clip": "Run", "speed": 1.5 }
+        },
+        "sounds": {
+          "bark": "https://raw.githubusercontent.com/bclnet/JsonScene/master/assets/sounds/singing-bush.wav"
+        },
+        "sockets": { "nose": "b_Head_05", "back": "b_Spine02_03" }
+      },
+      "mobility": { "mode": "ground", "speed": 0.6, "turnRate": 240, "idle": "idle", "move": "walk" },
+      "behaviors": [
+        { "type": "flee", "from": "user", "distance": 1.2, "priority": 10, "when": "$scared" },
+        { "type": "approach", "target": "user", "stopAt": 0.6, "priority": 5, "when": "$called" },
+        { "type": "lookAt", "target": "user", "priority": 1 },
+        { "type": "wander", "radius": 2.0, "pause": [1, 4] }
+      ],
+      "mind": {
+        "persona": "You are Snoopy, a beagle with a rich imagination. You do not talk; you express yourself with sounds, animations and movement, and the occasional thought bubble.",
+        "senses": ["userDistance", "userLooking", "timeOfDay", "state", "actors"],
+        "tools": ["say", "play", "sound", "moveTo", "lookAt"],
+        "budget": { "tokens": 50000, "perTurn": 400, "cooldown": 10 },
+        "triggers": ["tap", "near", "timer"],
+        "interval": 45,
+        "canned": [
+          { "match": "^near", "do": [ { "lookAt": "user" }, { "sound": "bark" } ] },
+          { "match": "^tap", "do": [ { "play": "happy" }, { "say": "..." } ] }
+        ]
+      },
+      "on": {
+        "tap": [ { "set": { "called": true } }, { "sound": "bark" } ],
+        "arrived": [ { "set": { "called": false } }, { "play": "happy" } ],
+        "animationEnd": { "emit": "settle" },
+        "settle": { "play": "idle" }
+      }
+    },
+    {
+      "id": "woodstock",
+      "name": "Woodstock",
+      "transform": { "position": [-0.5, 0.8, 0.2] },
+      "body": {
+        "model": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb",
+        "scale": 0.08
+      },
+      "mobility": { "mode": "air", "speed": 0.9, "turnRate": 360, "altitude": [0.4, 1.4] },
+      "behaviors": [
+        { "type": "perchOn", "target": "snoopy", "socket": "back", "priority": 5, "when": "${!state.called}" },
+        { "type": "wander", "radius": 1.5, "pause": [0.5, 2] }
+      ],
+      "on": { "tap": { "set": { "called": true } } }
+    }
+  ]
+}

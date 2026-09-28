@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  swift-linux:
+    name: Swift core (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build
+      - run: swift test
+
+  swift-apple:
+    name: Swift package (macOS / iOS)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build
+      - run: swift test
+      - name: Build for iOS Simulator
+        run: xcodebuild -scheme JsonScene -destination 'generic/platform=iOS Simulator' build
+
+  android:
+    name: Android and Quest libraries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Build and test
+        working-directory: android
+        run: ./gradlew --no-daemon build
