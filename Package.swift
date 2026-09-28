@@ -6,10 +6,10 @@ import Foundation
 // the Swift sources live in ios/ next to the Android project in android/.
 // JsonUI comes from GitHub; set JSONUI_PATH to build against a local checkout.
 let jsonUI: Package.Dependency = ProcessInfo.processInfo.environment["JSONUI_PATH"].map { .package(path: $0) }
-    ?? .package(url: "https://github.com/bclnet/JsonUI", branch: "claude/ios-android-form-libraries-2jjfw5")
+    ?? .package(url: "https://github.com/bclnet/JsonUI", branch: "master")
 // JsonMind holds the minds and the command vocabulary; set JSONMIND_PATH for a local checkout.
 let jsonMind: Package.Dependency = ProcessInfo.processInfo.environment["JSONMIND_PATH"].map { .package(path: $0) }
-    ?? .package(url: "https://github.com/bclnet/JsonMind", branch: "claude/jsonmind")
+    ?? .package(url: "https://github.com/bclnet/JsonMind", branch: "master")
 
 let package = Package(
     name: "JsonScene",
