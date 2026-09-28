@@ -1,6 +1,7 @@
 import XCTest
 @testable import JsonSceneCore
 import JsonUICore
+import JsonMind
 
 final class SteeringTests: XCTestCase {
     let ground = Mobility(mode: .ground, speed: 1, turnRate: 360)

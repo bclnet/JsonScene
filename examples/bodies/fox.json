@@ -1,0 +1,11 @@
+{
+  "model": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb",
+  "scale": 0.005,
+  "animations": {
+    "idle": { "clip": "Survey", "loop": true },
+    "walk": { "clip": "Walk", "loop": true },
+    "run": { "clip": "Run", "loop": true },
+    "happy": { "clip": "Run", "speed": 1.5 }
+  },
+  "sockets": { "nose": "b_Head_05", "back": "b_Spine02_03" }
+}

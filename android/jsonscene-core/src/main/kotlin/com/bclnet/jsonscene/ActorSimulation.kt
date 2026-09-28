@@ -9,6 +9,18 @@
  */
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
+import com.bclnet.jsonui.flag
+import com.bclnet.jsonui.integerValue
+import com.bclnet.jsonui.numberValue
+import com.bclnet.jsonui.text
 import com.bclnet.jsonui.JsonAction
 import com.bclnet.jsonui.JsonActionHandler
 import com.bclnet.jsonui.JsonContext
@@ -143,7 +155,7 @@ class ActorSimulation(val scene: SceneDocument, val context: JsonContext) {
                     is ActorCommand.MoveTo -> if (state.actor.isMobile) {
                         state.commandStopAt = command.stopAt ?: 0.6
                         when (val target = command.target) {
-                            is ActorCommand.MoveTarget.Point -> { state.commandGoal = SteeringGoal.Seek(target.point, command.stopAt ?: 0.05); state.commandTarget = null }
+                            is ActorCommand.MoveTarget.Point -> { state.commandGoal = SteeringGoal.Seek(Vec3.of(target.point), command.stopAt ?: 0.05); state.commandTarget = null }
                             is ActorCommand.MoveTarget.Of -> {
                                 state.commandTarget = target.target
                                 state.commandGoal = senses.position(target.target)?.let { SteeringGoal.Seek(it, command.stopAt ?: 0.6) } ?: SteeringGoal.None
@@ -160,6 +172,18 @@ class ActorSimulation(val scene: SceneDocument, val context: JsonContext) {
                         return outputs
                     }
                     is ActorCommand.Emit -> outputs += fire(command.event, state.actor.id, payload)
+                    is ActorCommand.Behave -> {
+                        // A mind (or a handler) picks a behavior: by name from the actor's list, or described inline.
+                        val spec = command.behavior
+                        val name = spec.text
+                        state.runner?.override = when {
+                            name == "idle" || name == "none" -> Behavior(Behavior.Kind.Idle)
+                            name != null -> state.actor.behaviors.firstOrNull { it.type == name } ?: Behavior.kind(name, JsonObject(emptyMap()))?.let { Behavior(it) } ?: state.runner?.override
+                            else -> Behavior.of(spec) ?: state.runner?.override
+                        }
+                        state.commandGoal = null
+                        state.commandTarget = null
+                    }
                 }
             }
         }
@@ -201,6 +225,7 @@ class ActorSimulation(val scene: SceneDocument, val context: JsonContext) {
             s["animations"] = JsonArray(body.animations.keys.sorted().map { JsonPrimitive(it) })
             s["sounds"] = JsonArray(body.sounds.keys.sorted().map { JsonPrimitive(it) })
         }
+        if (state.actor.isMobile) s["behaviors"] = JsonArray((state.actor.behaviors.map { it.type } + "idle").toSet().sorted().map { JsonPrimitive(it) })
         return s
     }
 

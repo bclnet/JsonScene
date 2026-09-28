@@ -1,5 +1,10 @@
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
+import com.bclnet.jsonui.numberValue
+
 import com.bclnet.jsonui.JsonAction
 import com.bclnet.jsonui.JsonRuntime
 import com.bclnet.jsonui.jsonArrayOf
@@ -61,7 +66,7 @@ class ActorSimulationTest {
         val sim = simulation("scene-snoopy.json")
         sim.start()
         sim.userPosition = Vec3(0.0, 1.6, 2.4)
-        sim.perform(listOf(ActorCommand.MoveTo(ActorCommand.MoveTarget.Point(Vec3(0.0, 0.0, -2.0)), 0.05)), "snoopy")
+        sim.perform(listOf(ActorCommand.MoveTo(ActorCommand.MoveTarget.Point(Point3(0.0, 0.0, -2.0)), 0.05)), "snoopy")
         val animations = mutableListOf<String>()
         repeat(200) { for (o in sim.tick(0.05)) if (o is ActorOutput.Play && o.actor == "snoopy") animations += o.animation }
         assertTrue(animations.contains("walk"))
@@ -136,5 +141,26 @@ class ActorSimulationTest {
         assertNull((s["actors"] as kotlinx.serialization.json.JsonObject)["snoopy"])
         assertEquals("morning", ActorSimulation.timeOfDay(9))
         assertEquals("night", ActorSimulation.timeOfDay(23))
+    }
+}
+
+class BehaveCommandTest {
+    @Test fun behaveOverridesBehaviorsUntilCleared() {
+        val document = TestSupport.document("scene-snoopy.json")
+        val sim = ActorSimulation(SceneDocument.of(document)!!, JsonRuntime(document).context)
+        sim.start()
+        sim.userPosition = Vec3(0.0, 1.6, 2.0)
+        sim.perform(listOf(ActorCommand.Behave(JsonPrimitive("approach"))), "snoopy")
+        repeat(40) { sim.tick(0.05) }
+        val snoopy = sim["snoopy"]!!
+        assertEquals("approach", snoopy.runner?.active?.type)
+        assertTrue(snoopy.pose.position.horizontalDistance(Vec3(0.0, 0.0, 2.0)) < Vec3(0.8, 0.0, 0.4).horizontalDistance(Vec3(0.0, 0.0, 2.0)))
+        sim.perform(listOf(ActorCommand.Behave(jsonObjectOf("type" to "flee", "from" to "user", "distance" to 3))), "snoopy")
+        sim.tick(0.05)
+        assertEquals(Behavior.Kind.Flee(Target.User, 3.0), snoopy.runner?.active?.kind)
+        sim.perform(listOf(ActorCommand.Behave(JsonPrimitive("idle"))), "snoopy")
+        sim.tick(0.05)
+        assertEquals(Behavior.Kind.Idle, snoopy.runner?.active?.kind)
+        assertEquals(jsonArrayOf("approach", "flee", "idle", "lookAt", "wander"), sim.senseValues(snoopy)["behaviors"])
     }
 }

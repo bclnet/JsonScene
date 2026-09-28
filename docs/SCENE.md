@@ -34,6 +34,21 @@ alike: event handlers (`on`), behaviors (autonomous movement) and a mind (an
 AI model spending a token budget). Adding the mind later never changes the
 document format, only who emits the commands.
 
+## Fragments
+
+Bodies, minds, sounds and whole actors can be shared files referenced with
+JsonUI [fragments](https://github.com/bclnet/JsonUI/blob/master/docs/SCHEMA.md#fragments)
+and overridden in place:
+
+```json
+"body": { "$ref": "bodies/fox.json", "sounds": { "bark": "bark.wav" } },
+"mind": { "$ref": "https://raw.githubusercontent.com/bclnet/JsonMind/master/examples/minds/snoopy.json" }
+```
+
+Renderers resolve fragments against the document's URL before parsing
+(`JsonFragmentResolver` / `JsonFragments`), so `SceneDocument` always sees
+plain JSON.
+
 ## Scene
 
 | key | type | meaning |
@@ -107,41 +122,31 @@ whose `when` is true (or has none) and steers towards its goal.
 
 ### `mind`
 
-| key | type | meaning |
-| --- | --- | --- |
-| `persona` | string | who the actor is, in prose; the system prompt |
-| `senses` | array | what the actor is told each turn: `userDistance`, `userLooking`, `timeOfDay`, `state` (a snapshot of the document state), `actors` (the other actors' positions), `lastEvent` |
-| `tools` | array | commands the model may emit, default all of `say`, `play`, `sound`, `moveTo`, `lookAt`, `set` |
-| `budget` | `{ "tokens": total, "perTurn": max, "cooldown": seconds }` | the token allowance for this actor's lifetime, the cap per turn and the minimum pause between turns |
-| `triggers` | array | events that start a turn: `tap`, `near`, `far`, `spoken`, `timer` (with `interval` seconds); default `["tap", "near"]` |
-| `canned` | array | rules used when no model is attached (and as a fallback when the budget is exhausted): `{ "match": "regex over the event and heard text", "do": [commands] }` |
+The actor's personality, a [JsonMind](https://github.com/bclnet/JsonMind) mind:
+persona, senses, tools, token budget, triggers and canned rules
+(`docs/MIND.md` there has the schema). Usually a fragment:
 
-The provider is not part of the document. The host app attaches a
-`MindProvider` (Swift) / `MindProvider` (Kotlin) that turns a
-`MindPrompt` into a `MindReply`; JsonScene ships the canned rule provider and
-the prompt / reply format, so any model can be wired in a few lines. Speech
-(`say`) is spoken on device by the renderer.
+```json
+"mind": { "$ref": "minds/snoopy.json", "budget": { "tokens": 5000 } }
+```
+
+The scene adds these senses to the mind's own: `animations`, `sounds` and
+`behaviors` (the actor's repertoire, sent in the system prompt), and it
+executes the mind's commands like any other. A mind steers with
+`{ "behave": "approach" }`: the named behavior (from the actor's list, or any
+behavior type) wins over the list until another `behave`, `idle` clears it.
+The provider (TokenX) is attached by the app through `mindProvider`; until
+then the canned rules answer.
 
 ## Commands
 
-A command is an object with one verb key. Handlers, behaviors and minds all
-produce the same commands.
-
-| command | form | does |
-| --- | --- | --- |
-| `play` | `{ "play": "sing" }`, `{ "play": { "animation": "sing", "loop": false, "speed": 1 } }` | plays a body animation |
-| `sound` | `{ "sound": "song" }`, `{ "sound": { "name": "song", "loop": true } }` | plays a body sound |
-| `stopSound` | `{ "stopSound": "song" }` or `{ "stopSound": true }` | stops one or every sound |
-| `say` | `{ "say": "Hello!" }` | shows a speech bubble and speaks the text |
-| `moveTo` | `{ "moveTo": [x, y, z] }`, `{ "moveTo": "user" }`, `{ "moveTo": { "target": "bush", "stopAt": 0.4 } }` | walks or flies to a point or a target (mobile actors only) |
-| `lookAt` | `{ "lookAt": "user" }` | turns towards a target |
-| `stop` | `{ "stop": true }` | stops moving |
-| `wait` | `{ "wait": 1.5 }` | pauses the command sequence |
-| `set` | `{ "set": { "mood": "singing" } }` | sets document state (a JsonUI action) |
-| `emit` | `{ "emit": "sang" }` | fires the actor's `on.sang` handler |
-
-Anything that is not a command is treated as a JsonUI action, so `"js: ..."`
-scripts and `{ "name": "toast", "args": {...} }` host actions work in handlers.
+Commands are JsonMind's vocabulary (`play`, `sound`, `stopSound`, `say`,
+`moveTo`, `lookAt`, `behave`, `stop`, `wait`, `emit`, plus any JsonUI action
+such as `set`); see
+[JsonMind's MIND.md](https://github.com/bclnet/JsonMind/blob/master/docs/MIND.md#commands).
+Handlers, behaviors and minds all produce the same commands, and the scene
+executes them: `moveTo` and `behave` need a mobile actor, `play` an animation
+of that name, `sound` a sound of that name.
 
 ### Events (`on`)
 

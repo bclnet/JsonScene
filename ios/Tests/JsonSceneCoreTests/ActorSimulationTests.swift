@@ -1,6 +1,7 @@
 import XCTest
 @testable import JsonSceneCore
 import JsonUICore
+import JsonMind
 
 final class ActorSimulationTests: XCTestCase {
     func makeSimulation(_ name: String) throws -> ActorSimulation {
@@ -51,7 +52,7 @@ final class ActorSimulationTests: XCTestCase {
         let sim = try makeSimulation("scene-snoopy.json")
         _ = sim.start()
         sim.userPosition = Vec3(0, 1.6, 2.4)
-        _ = sim.perform([.moveTo(.point(Vec3(0, 0, -2)), stopAt: 0.05)], on: "snoopy")
+        _ = sim.perform([.moveTo(.point(Point3(0, 0, -2)), stopAt: 0.05)], on: "snoopy")
         var animations: [String] = []
         for _ in 0..<200 {
             for case .play(actor: "snoopy", animation: let a, _, _) in sim.tick(dt: 0.05) { animations.append(a) }
@@ -126,5 +127,28 @@ final class ActorSimulationTests: XCTestCase {
         XCTAssertEqual(s["animations"], ["happy", "idle", "run", "walk"])
         XCTAssertNotNil(s["actors"]?.objectValue?["woodstock"])
         XCTAssertNil(s["actors"]?.objectValue?["snoopy"])
+    }
+}
+
+final class BehaveCommandTests: XCTestCase {
+    func testBehaveOverridesBehaviorsUntilCleared() throws {
+        let document = try TestSupport.document("scene-snoopy.json")
+        let runtime = JsonRuntime(document: document)
+        let sim = ActorSimulation(scene: try XCTUnwrap(SceneDocument(document: document)), context: runtime.context)
+        _ = sim.start()
+        sim.userPosition = Vec3(0, 1.6, 2)
+        _ = sim.perform([.behave("approach")], on: "snoopy")
+        for _ in 0..<40 { _ = sim.tick(dt: 0.05) }
+        let snoopy = try XCTUnwrap(sim["snoopy"])
+        XCTAssertEqual(snoopy.runner?.active?.type, "approach")
+        XCTAssertLessThan(snoopy.pose.position.horizontalDistance(to: Vec3(0, 0, 2)), Vec3(0.8, 0, 0.4).horizontalDistance(to: Vec3(0, 0, 2)))
+        _ = sim.perform([.behave(["type": "flee", "from": "user", "distance": 3])], on: "snoopy")
+        _ = sim.tick(dt: 0.05)
+        XCTAssertEqual(snoopy.runner?.active?.kind, .flee(from: .user, distance: 3))
+        _ = sim.perform([.behave("idle")], on: "snoopy")
+        _ = sim.tick(dt: 0.05)
+        XCTAssertEqual(snoopy.runner?.active?.kind, .idle)
+        let senses = sim.senseValues(for: snoopy)
+        XCTAssertEqual(senses["behaviors"], ["approach", "flee", "idle", "lookAt", "wander"])
     }
 }

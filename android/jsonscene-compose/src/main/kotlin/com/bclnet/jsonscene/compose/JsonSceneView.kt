@@ -7,6 +7,14 @@
  */
 package com.bclnet.jsonscene.compose
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bclnet.jsonscene.AssetLocator
-import com.bclnet.jsonscene.MindProvider
 import com.bclnet.jsonscene.SceneDocument
 import com.bclnet.jsonui.JsonContext
 import com.bclnet.jsonui.JsonNode

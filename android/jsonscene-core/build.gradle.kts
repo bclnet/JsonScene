@@ -19,6 +19,7 @@ kotlin {
 
 dependencies {
     api(libs.jsonui.core)
+    api(libs.jsonmind)
     api(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
 }

@@ -7,6 +7,11 @@
  */
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonui.flag
+import com.bclnet.jsonui.integerValue
+import com.bclnet.jsonui.numberValue
+import com.bclnet.jsonui.text
 import com.bclnet.jsonui.jsonNumber
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -41,8 +46,12 @@ data class Vec3(val x: Double, val y: Double, val z: Double) {
 
     val value: JsonElement get() = JsonArray(listOf(jsonNumber(x), jsonNumber(y), jsonNumber(z)))
 
+    val point: Point3 get() = Point3(x, y, z)
+
     companion object {
         val ZERO = Vec3(0.0, 0.0, 0.0)
+
+        fun of(p: Point3) = Vec3(p.x, p.y, p.z)
 
         /** Parses `[x, y, z]`, `[x, z]` (y = 0) or `{ "x": .., "y": .., "z": .. }`. */
         fun of(value: JsonElement): Vec3? = when (value) {

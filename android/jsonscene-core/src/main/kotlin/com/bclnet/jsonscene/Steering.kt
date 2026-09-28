@@ -8,6 +8,14 @@
  */
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -105,6 +113,9 @@ class BehaviorRunner(behaviors: List<Behavior>, val mobility: Mobility, bounds: 
     val bounds: Bounds = mobility.bounds ?: bounds
     var activeIndex: Int? = null
         private set
+    /** A behavior chosen by a `behave` command; it wins over the list until it is replaced or cleared. */
+    var override: Behavior? = null
+        set(value) { if (value != field) { field = value; activeIndex = null; wanderTarget = null; wanderPauseUntil = 0.0; patrolIndex = 0 } }
     var wanderTarget: Vec3? = null
         private set
     var wanderPauseUntil: Double = 0.0
@@ -113,7 +124,7 @@ class BehaviorRunner(behaviors: List<Behavior>, val mobility: Mobility, bounds: 
         private set
     private val random = Random(seed)
 
-    val active: Behavior? get() = activeIndex?.let { behaviors[it] }
+    val active: Behavior? get() = override ?: activeIndex?.let { behaviors[it] }
 
     /**
      * The goals for this frame: a movement goal and an optional `lookAt` facing goal.
@@ -131,9 +142,17 @@ class BehaviorRunner(behaviors: List<Behavior>, val mobility: Mobility, bounds: 
             }
             if (chosen == null) chosen = i
         }
-        if (chosen != activeIndex) { activeIndex = chosen; wanderTarget = null; wanderPauseUntil = 0.0 }
-        val index = chosen ?: return Goals(SteeringGoal.None, face)
-        val move: SteeringGoal = when (val kind = behaviors[index].kind) {
+        val forced = override
+        val behavior: Behavior
+        if (forced != null) {
+            (forced.kind as? Behavior.Kind.LookAt)?.let { kind -> senses.position(kind.target)?.let { face = SteeringGoal.Face(it) } }
+            behavior = forced
+        } else {
+            if (chosen != activeIndex) { activeIndex = chosen; wanderTarget = null; wanderPauseUntil = 0.0 }
+            val index = chosen ?: return Goals(SteeringGoal.None, face)
+            behavior = behaviors[index]
+        }
+        val move: SteeringGoal = when (val kind = behavior.kind) {
             is Behavior.Kind.Idle, is Behavior.Kind.LookAt -> SteeringGoal.None
             is Behavior.Kind.Wander -> {
                 val area: Bounds = kind.radius?.let { Bounds.Radius(it) } ?: bounds

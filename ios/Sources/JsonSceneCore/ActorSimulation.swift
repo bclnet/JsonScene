@@ -13,6 +13,7 @@
 
 import Foundation
 import JsonUICore
+import JsonMind
 
 /// Something the renderer must do for an actor.
 public enum ActorOutput: Equatable {
@@ -157,7 +158,7 @@ public final class ActorSimulation {
                     guard state.actor.isMobile else { break }
                     state.commandStopAt = stopAt ?? 0.6
                     switch target {
-                    case .point(let p): state.commandGoal = .seek(p, stopAt: stopAt ?? 0.05); state.commandTarget = nil
+                    case .point(let p): state.commandGoal = .seek(Vec3(p), stopAt: stopAt ?? 0.05); state.commandTarget = nil
                     case .target(let t): state.commandTarget = t; state.commandGoal = senses.position(of: t).map { .seek($0, stopAt: stopAt ?? 0.6) } ?? SteeringGoal.none
                     }
                 case .lookAt(let target):
@@ -173,6 +174,17 @@ public final class ActorSimulation {
                     return outputs
                 case .emit(let event):
                     outputs += fire(event, on: state.actor.id, payload: payload)
+                case .behave(let spec):
+                    // A mind (or a handler) picks a behavior: by name from the actor's list, or described inline.
+                    if let name = spec.text {
+                        if name == "idle" || name == "none" { state.runner?.override = Behavior(kind: .idle) }
+                        else if let existing = state.actor.behaviors.first(where: { $0.type == name }) { state.runner?.override = existing }
+                        else if let kind = Behavior.kind(type: name, [:]) { state.runner?.override = Behavior(kind: kind) }
+                    } else if let behavior = Behavior(spec) {
+                        state.runner?.override = behavior
+                    }
+                    state.commandGoal = nil
+                    state.commandTarget = nil
                 }
             }
         }
@@ -217,6 +229,7 @@ public final class ActorSimulation {
             s["animations"] = .array(body.animations.keys.sorted().map(JsonValue.string))
             s["sounds"] = .array(body.sounds.keys.sorted().map(JsonValue.string))
         }
+        if state.actor.isMobile { s["behaviors"] = .array(Array(Set(state.actor.behaviors.map(\.type) + ["idle"])).sorted().map(JsonValue.string)) }
         return s
     }
 

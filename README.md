@@ -24,9 +24,13 @@ Snoopy and Woodstock are two mobile ones (`examples/`).
 ```
 
 `docs/SCENE.md` is the format reference. Every actor is driven by one command
-vocabulary (`play`, `sound`, `say`, `moveTo`, `lookAt`, …) whatever the
-source: an `on` handler, a behaviour or a mind. That is what lets the mind be
-added later without touching the documents.
+vocabulary (`play`, `sound`, `say`, `moveTo`, `lookAt`, `behave`, …) whatever
+the source: an `on` handler, a behaviour or a mind. The vocabulary and the
+minds themselves live in [JsonMind](https://github.com/bclnet/JsonMind);
+JsonScene owns the stage: bodies, mobility, behaviours (the geometry that
+runs every frame and costs no tokens) and the renderers. Bodies and minds are
+usually [fragments](https://github.com/bclnet/JsonUI/blob/master/docs/SCHEMA.md#fragments)
+shared between scenes (`examples/bodies`, `examples/minds`).
 
 ## Libraries
 
@@ -40,12 +44,11 @@ added later without touching the documents.
 cache, sounds (MediaPlayer), speech (TextToSpeech) and `SceneDriver`, which
 runs the simulation and hands animations and poses to an `ActorRenderer`.
 
-The cores contain the scene document model, the command parser, the steering
-and behaviour runner (`Steering`, `BehaviorRunner`), the actor simulation
-(`ActorSimulation`: events, `wait`, near/far, timers, locomotion animation) and
-the mind machinery (`MindPrompt` / `MindReply` text formats, `TokenLedger`,
-`MindSession`, `CannedMindProvider`). A host app plugs a model in by
-implementing `MindProvider`; until then the `canned` rules answer.
+The cores contain the scene document model, the steering and behaviour runner
+(`Steering`, `BehaviorRunner`) and the actor simulation (`ActorSimulation`:
+events, `wait`, near/far, timers, locomotion animation, `behave`). The mind
+machinery comes from JsonMind; the app attaches a token stream by setting a
+`MindProvider` (TokenX), and until then the `canned` rules answer.
 
 ## Using it
 
@@ -91,7 +94,7 @@ swift test
 # with a local JsonUI checkout instead of the GitHub dependency
 JSONUI_PATH=/path/to/JsonUI swift test
 
-# Android and Quest libraries (needs the JsonUI submodule)
+# Android and Quest libraries (need the JsonUI and JsonMind submodules)
 git submodule update --init
 cd android && ./gradlew build
 
@@ -105,16 +108,17 @@ scripts/fetch-sample-models.sh
 Package.swift             Swift manifest (root, so SwiftPM can add the package by URL)
 ios/Sources/JsonSceneCore scene document, commands, steering, minds, simulation
 ios/Sources/JsonScene     SceneKit renderer, JsonUI registration
-ios/Tests                 JsonSceneCoreTests (46, run on Linux), JsonSceneTests (Apple)
-android/jsonscene-core    Kotlin mirror of the core with 44 JVM tests
+ios/Tests                 JsonSceneCoreTests (36, run on Linux), JsonSceneTests (Apple)
+android/jsonscene-core    Kotlin mirror of the core with 34 JVM tests
 android/jsonscene-android asset cache, audio, speech, SceneDriver
 android/jsonscene-compose Filament / SceneView renderer and composable
 android/jsonscene-spatial Meta Spatial SDK renderer
 docs/SCENE.md             the format
 schema/scene.schema.json  JSON Schema for a Scene node
-examples/                 the singing bush and Snoopy scenes
+examples/                 the singing bush and Snoopy scenes, body and mind fragments
 assets/sounds/            the bush's song (synthesised, CC0)
 third_party/JsonUI        JsonUI submodule
+third_party/JsonMind      JsonMind submodule (minds and the command vocabulary)
 ```
 
 ## License

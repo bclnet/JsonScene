@@ -1,0 +1,8 @@
+{
+  "model": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/BoxAnimated/glTF-Binary/BoxAnimated.glb",
+  "scale": 0.15,
+  "animations": {
+    "idle": { "clip": 0, "loop": true, "speed": 0.25 },
+    "sing": { "clip": 0, "loop": true, "speed": 1.5 }
+  }
+}

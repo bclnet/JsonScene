@@ -9,13 +9,23 @@
  */
 package com.bclnet.jsonscene.android
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
+import com.bclnet.jsonui.flag
+import com.bclnet.jsonui.integerValue
+import com.bclnet.jsonui.numberValue
+import com.bclnet.jsonui.text
 import android.content.Context
-import com.bclnet.jsonscene.ActorCommand
 import com.bclnet.jsonscene.ActorOutput
 import com.bclnet.jsonscene.ActorPose
 import com.bclnet.jsonscene.ActorSimulation
 import com.bclnet.jsonscene.AssetLocator
-import com.bclnet.jsonscene.MindProvider
 import com.bclnet.jsonscene.SceneDocument
 import com.bclnet.jsonscene.Vec3
 import com.bclnet.jsonui.JsonContext

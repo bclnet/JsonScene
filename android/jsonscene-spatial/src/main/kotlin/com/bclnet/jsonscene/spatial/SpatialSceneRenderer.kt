@@ -10,12 +10,19 @@
  */
 package com.bclnet.jsonscene.spatial
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
 import android.content.Context
 import android.net.Uri
 import com.bclnet.jsonscene.Actor
 import com.bclnet.jsonscene.ActorPose
 import com.bclnet.jsonscene.AssetLocator
-import com.bclnet.jsonscene.MindProvider
 import com.bclnet.jsonscene.SceneDocument
 import com.bclnet.jsonscene.Vec3
 import com.bclnet.jsonscene.android.ActorRenderer

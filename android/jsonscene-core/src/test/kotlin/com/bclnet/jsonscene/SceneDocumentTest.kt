@@ -1,5 +1,9 @@
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.Target
+
 import com.bclnet.jsonui.JsonDocument
 import com.bclnet.jsonui.JsonNode
 import com.bclnet.jsonui.jsonArrayOf

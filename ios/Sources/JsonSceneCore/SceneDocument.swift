@@ -10,6 +10,7 @@
 
 import Foundation
 import JsonUICore
+@_exported import JsonMind
 
 public struct SceneDocument: Equatable {
     public static let nodeType = "Scene"
@@ -359,19 +360,6 @@ public struct Mobility: Equatable {
 
 // MARK: - Behaviors
 
-/// A target of a behavior or command: the viewer or another actor.
-public enum Target: Equatable, Hashable {
-    case user
-    case actor(String)
-
-    public init?(_ value: JsonValue) {
-        guard let s = value.text, !s.isEmpty else { return nil }
-        self = s == "user" ? .user : .actor(s)
-    }
-
-    public var value: JsonValue { switch self { case .user: return "user"; case .actor(let id): return .string(id) } }
-}
-
 public struct Behavior: Equatable {
     public enum Kind: Equatable {
         case idle
@@ -400,7 +388,7 @@ public struct Behavior: Equatable {
         self.init(kind: kind, priority: o["priority"]?.integerValue ?? 0, when: o["when"])
     }
 
-    static func kind(type: String, _ o: [String: JsonValue]) -> Kind? {
+    public static func kind(type: String, _ o: [String: JsonValue]) -> Kind? {
         func target(_ key: String) -> Target { o[key].flatMap(Target.init) ?? .user }
         switch type {
         case "idle": return .idle

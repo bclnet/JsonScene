@@ -1,6 +1,7 @@
 import XCTest
 @testable import JsonSceneCore
 import JsonUICore
+import JsonMind
 
 final class SceneDocumentTests: XCTestCase {
     func testBushExample() throws {

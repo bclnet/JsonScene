@@ -9,6 +9,18 @@
  */
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.ActorCommand
+import com.bclnet.jsonmind.ActorScript
+import com.bclnet.jsonmind.ActorStep
+import com.bclnet.jsonmind.Mind
+import com.bclnet.jsonmind.MindProvider
+import com.bclnet.jsonmind.MindSession
+import com.bclnet.jsonmind.Point3
+import com.bclnet.jsonmind.Target
+import com.bclnet.jsonui.flag
+import com.bclnet.jsonui.integerValue
+import com.bclnet.jsonui.numberValue
+import com.bclnet.jsonui.text
 import com.bclnet.jsonui.JsonDocument
 import com.bclnet.jsonui.JsonNode
 import com.bclnet.jsonui.jsonNumber
@@ -360,21 +372,6 @@ data class Mobility(
 
 // MARK: - Behaviors
 
-/** A target of a behavior or command: the viewer or another actor. */
-sealed class Target {
-    object User : Target() { override fun toString() = "User" }
-    data class ActorId(val id: String) : Target()
-
-    val value: JsonElement get() = JsonPrimitive(when (this) { is User -> "user"; is ActorId -> id })
-
-    companion object {
-        fun of(value: JsonElement): Target? {
-            val s = value.text?.takeIf { it.isNotEmpty() } ?: return null
-            return if (s == "user") User else ActorId(s)
-        }
-    }
-}
-
 data class Behavior(val kind: Kind, val priority: Int = 0, /** Dynamic value; `null` means always. */ val `when`: JsonElement? = null) {
     sealed class Kind {
         object Idle : Kind() { override fun toString() = "Idle" }
@@ -430,7 +427,7 @@ data class Behavior(val kind: Kind, val priority: Int = 0, /** Dynamic value; `n
             return Behavior(kind, o["priority"]?.integerValue ?: 0, o["when"])
         }
 
-        private fun kind(type: String, o: JsonObject): Kind? {
+        fun kind(type: String, o: JsonObject): Kind? {
             fun target(key: String): Target = o[key]?.let { Target.of(it) } ?: Target.User
             return when (type) {
                 "idle" -> Kind.Idle

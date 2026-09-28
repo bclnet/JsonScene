@@ -8,6 +8,7 @@
 
 import Foundation
 import JsonUICore
+import JsonMind
 
 public struct Vec3: Equatable, Hashable {
     public var x: Double
@@ -36,6 +37,9 @@ public struct Vec3: Equatable, Hashable {
     }
 
     public var value: JsonValue { [.number(x), .number(y), .number(z)] }
+
+    public init(_ p: Point3) { self.init(p.x, p.y, p.z) }
+    public var point: Point3 { Point3(x, y, z) }
 
     public static func + (a: Vec3, b: Vec3) -> Vec3 { Vec3(a.x + b.x, a.y + b.y, a.z + b.z) }
     public static func - (a: Vec3, b: Vec3) -> Vec3 { Vec3(a.x - b.x, a.y - b.y, a.z - b.z) }

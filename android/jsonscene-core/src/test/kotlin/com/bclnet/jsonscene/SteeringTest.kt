@@ -1,5 +1,7 @@
 package com.bclnet.jsonscene
 
+import com.bclnet.jsonmind.Target
+
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

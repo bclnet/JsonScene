@@ -113,6 +113,8 @@ public struct BehaviorRunner {
     public var mobility: Mobility
     public var bounds: Bounds
     public private(set) var activeIndex: Int?
+    /// A behavior chosen by a `behave` command; it wins over the list until it is replaced or cleared.
+    public var override: Behavior? { didSet { if override != oldValue { activeIndex = nil; wanderTarget = nil; wanderPauseUntil = 0; patrolIndex = 0 } } }
     public private(set) var wanderTarget: Vec3?
     public private(set) var wanderPauseUntil: Double = 0
     public private(set) var patrolIndex = 0
@@ -125,7 +127,7 @@ public struct BehaviorRunner {
         self.random = SeededRandom(seed: seed)
     }
 
-    public var active: Behavior? { activeIndex.map { behaviors[$0] } }
+    public var active: Behavior? { override ?? activeIndex.map { behaviors[$0] } }
 
     /// The goals for this frame: a movement goal and an optional `lookAt` facing goal.
     /// `isActive` tells whether a behavior's `when` condition holds (`nil` conditions are always active).
@@ -140,9 +142,15 @@ public struct BehaviorRunner {
             }
             if chosen == nil { chosen = i }
         }
-        if chosen != activeIndex { activeIndex = chosen; wanderTarget = nil; wanderPauseUntil = 0 }
-        guard let index = chosen else { return (.none, face) }
-        let behavior = behaviors[index]
+        let behavior: Behavior
+        if let forced = override {
+            if case .lookAt(let target) = forced.kind, let p = senses.position(of: target) { face = .face(p) }
+            behavior = forced
+        } else {
+            if chosen != activeIndex { activeIndex = chosen; wanderTarget = nil; wanderPauseUntil = 0 }
+            guard let index = chosen else { return (.none, face) }
+            behavior = behaviors[index]
+        }
         switch behavior.kind {
         case .idle, .lookAt:
             move = .none
